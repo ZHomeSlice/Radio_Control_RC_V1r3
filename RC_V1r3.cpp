@@ -445,6 +445,7 @@ void RC::XYInput(uint8_t Xpin, uint8_t Ypin,uint8_t Throttlepin, int16_t* X, int
 // YawOffset = actual YawMPU + (Shift over time) (limited to turnLimit);
 // YawOffset is the desired heading it is unknown
 #define printfloatx(Name,Variable,Spaces,Precision,EndTxt) print(Name); {char S[(Spaces + Precision + 3)];Serial.print(F(" ")); Serial.print(dtostrf((float)Variable,Spaces,Precision ,S));}Serial.print(EndTxt);//Name,Variable,Spaces,Precision,EndTxt
+#define printintx(Name,Variable,EndTxt) print(Name); Serial.print(F(" ")); Serial.print(Variable);Serial.print(EndTxt);//Name,Variable,Spaces,Precision,EndTxt
 /*
 void xYawOffsetGenerator(float *NewDeg, float *DesiredDegrees, float YawDegrees,  float SetpointShift,int16_t TurnLimit = 90){
 	if (abs((*DesiredDegrees - SetpointShift) - YawDegrees )<170) *DesiredDegrees = *DesiredDegrees - SetpointShift;
@@ -478,7 +479,7 @@ void RC::YawOffsetGenerator(float *NewDeg, float *DesiredDegrees, float YawDegre
 void RC::YawGyroPiD(int16_t *Turn, float YawInput,int16_t MaxOut, float kp, float kd, int8_t controlDirection, uint8_t TurnControlEnable) {
 	if (TurnControlEnable) {
 		static float lastInput;
-		Serial.printfloatx(F("YawInput ")  , YawInput, 4, 0, F(" "));
+	//	Serial.printfloatx(F("YawInput ")  , YawInput, 4, 0, F(" "));
 
 		if (YawInput > 180) YawInput -= 360; // rollover to negative
 		if (YawInput < -180) YawInput += 360; // rollover to positive
@@ -534,11 +535,14 @@ int16_t RC::TankDeadzone(int16_t V, uint16_t deadzone){
 	return(V);
 }
 
-int16_t RC::ZeroDeadzone(int16_t V, uint16_t deadzone){
-	int16_t absV = abs(V);
-	absV = (absV < deadZone) ? 0 : map(absV, deadZone, 500, 1 ,500) ; // Inserts a Deadzone
-	V = (V >= 0) ? absV :  -absV; // Restores a FullRange Value +-
-	return(V);
+int16_t RC::ZeroDeadzone(int16_t Val, int16_t DZone){
+    int16_t absV ;
+	absV = abs(Val);
+	absV = absV - DZone;
+	if (absV < 0) absV = 0;
+	absV  = map((absV) , 0, (500 - DZone ), 0 ,500);
+	Val = (Val >= 0) ? absV :  -absV; // Restores a FullRange Value +-
+	return(Val);
 }
 
 void RC::TankPWM(int16_t LeftDrive,int16_t RightDrive, int16_t Breaking, uint8_t LeftPin, uint8_t Forward_LeftPin , uint8_t  Reverse_LeftPin, uint8_t RightPin, uint8_t  Forward_RightPin, uint8_t Reverse_RightPin ){

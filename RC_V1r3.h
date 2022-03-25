@@ -68,7 +68,7 @@ class RC {
 	void TankPWM(int16_t LeftDrive,int16_t RightDrive, int16_t Breaking, uint8_t LeftPin, uint8_t Forward_LeftPin , uint8_t  Reverse_LeftPin, uint8_t RightPin, uint8_t  Forward_RightPin, uint8_t Reverse_RightPin );
 	int16_t TankDeadzone(int16_t V,uint16_t deadzone = 0);
 	
-	int16_t ZeroDeadzone(int16_t V, uint16_t deadzone);
+	int16_t ZeroDeadzone(int16_t V, int16_t deadzone);
 	void Deadzone(uint16_t DZone = 0);
 	void MaxThrottle(uint16_t TMax = 1000);
 	void Ping();
