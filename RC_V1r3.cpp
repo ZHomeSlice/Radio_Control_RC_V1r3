@@ -368,6 +368,9 @@ uint8_t RC::Alive() {
 	}
 	return(RCIsAlive > 0);
 }
+int16_t RC::PinValue(uint8_t pin){
+	return(PinTime(pin, 1000, true));
+}
 int16_t RC::PinTime(uint8_t pin, uint16_t offset,bool MinMaxADJ) {
 	return(PosTime(PinArray[pin], offset , MinMaxADJ));
 }
@@ -384,8 +387,9 @@ int16_t RC::PosTime(uint8_t PinCount, uint16_t offset ,bool MinMaxADJ) {
 
 	//todo Adjust rcValue to 1000ms ~ 2000ms based on rcValueMin and rcValueMax
 	// adjust for slight overage +- and constrain to fit before Mapping Each
+	
 	int16_t Pos;
-	Pos = rcValue[PinCount] - offset;
+	Pos = constrain(rcValue[PinCount] - offset,0,1000);
 	return(Pos);
 }
 int16_t RC::PosTimeX(uint8_t PinCount) {
@@ -553,8 +557,19 @@ void RC::TankPWM(int16_t LeftDrive,int16_t RightDrive, int16_t Breaking, uint8_t
 	static int16_t LastRightDriveDirection;
 	static int16_t ActualLeftDrive;
 	static int16_t ActualRightDrive;
+	static int16_t LeftDriveRampUP = 0;
+	static int16_t RightDriveRampUP = 0;
 	ActualLeftDrive = abs(LeftDrive);
+	LastLeftDrive = ActualLeftDrive;
+	
 	ActualRightDrive = abs(RightDrive);
+	LastRightDrive = ActualRightDrive;
+	
+    if ((LastLeftDriveDirection <= 0) ==  (LeftDrive > 0)) LeftDriveRampUP = 0;
+    ActualLeftDrive =  (ActualLeftDrive > LeftDriveRampUP) ? (int16_t) ((LeftDriveRampUP++) ) : (LeftDriveRampUP =  ActualLeftDrive);
+    if ((LastRightDriveDirection <= 0) ==  (RightDrive >= 0)) RightDriveRampUP = 0;
+    ActualRightDrive =  (ActualRightDrive > RightDriveRampUP) ? (int16_t) ((RightDriveRampUP++) ) : (RightDriveRampUP =  ActualRightDrive);
+
 	if ((LeftDrive == 0) ||((LastLeftDriveDirection > 0) != (LeftDrive > 0))){
 		digitalWrite(Forward_LeftPin, LOW);
 		digitalWrite(Reverse_LeftPin, LOW);
@@ -567,15 +582,11 @@ void RC::TankPWM(int16_t LeftDrive,int16_t RightDrive, int16_t Breaking, uint8_t
 		ActualRightDrive = min(255,abs(Breaking));
 		// Add Breaking
 	}
-	//Add Slow Ramp up to Speed to Prevent sudden changes in direction of motor
 
-
-	LastLeftDriveDirection =LeftDrive;
-	LastRightDriveDirection= RightDrive;
+	LastLeftDriveDirection = LeftDrive;
+	LastRightDriveDirection = RightDrive;
 	//	LastLeftDriveDirection = min(-1,max(1,LeftDrive));// -1 Reverse , 0 stop, +1 Forward
 	//	LastRightDriveDirection = min(-1,max(1,RightDrive)); // -1 Reverse , 0 stop, +1 Forward
-	LastLeftDrive = abs(LeftDrive);
-	LastRightDrive = abs(RightDrive);
 	//Add Slow Ramp up to Speed to Prevent sudden changes in direction of motor
 
 	analogWrite(LeftPin,constrain(map(ActualLeftDrive,0,500,0,255),0,255));

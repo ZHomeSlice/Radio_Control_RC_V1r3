@@ -47,6 +47,7 @@ class RC {
 	void Print(uint16_t SpamDelay = 100);
 	void Timers(uint8_t pin, uint8_t group, uint8_t StartPin, uint8_t EndPin);
 	uint8_t Alive();
+	int16_t PinValue(uint8_t pin);
 	int16_t PinTime(uint8_t pin, uint16_t offset = 1000,bool MinMaxADJ = false);
 	int16_t PinTimeX(uint8_t pin);
 	int16_t PosTime(uint8_t PinCount, uint16_t offset = 1000,bool MinMaxADJ = false);
